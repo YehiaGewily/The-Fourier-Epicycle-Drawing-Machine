@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fourier Epicycle Drawing Machine</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="sketch.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #0a0a0a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 20px 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            min-width: 280px;
+        }
+
+        #controls h3 {
+            color: #00ffff;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            color: #aaa;
+            font-size: 13px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        #waveSlider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            -webkit-appearance: none;
+        }
+
+        #waveSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #00ffff, #00ccff);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+            transition: all 0.2s ease;
+        }
+
+        #waveSlider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+        }
+
+        #waveSlider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #00ffff, #00ccff);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+            transition: all 0.2s ease;
+        }
+
+        #waveSlider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+        }
+
+        #sliderValue {
+            color: #00ffff;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 8px;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #ff006e, #ff1485);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 0, 110, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 110, 0.5);
+            background: linear-gradient(135deg, #ff1485, #ff006e);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #instructions {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            font-size: 13px;
+            max-width: 300px;
+            z-index: 1000;
+        }
+
+        #instructions strong {
+            color: #00ffff;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        #instructions p {
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="controls">
+        <h3>⚙️ Controls</h3>
+
+        <div class="control-group">
+            <label for="waveSlider">Epicycles: <span id="sliderValue">1</span></label>
+            <input type="range" id="waveSlider" min="1" max="1" value="1">
+        </div>
+
+        <div class="control-group">
+            <button id="resetBtn">🔄 New Drawing</button>
+        </div>
+    </div>
+
+    <div id="instructions">
+        <strong>How to Use:</strong>
+        <p><b>Draw:</b> Click and drag to sketch</p>
+        <p><b>Animate:</b> Release to see epicycles</p>
+        <p><b>Experiment:</b> Adjust slider to see approximations</p>
+    </div>
+</body>
+
+</html>
