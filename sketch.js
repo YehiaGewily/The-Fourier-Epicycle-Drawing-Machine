@@ -17,6 +17,7 @@ let state = 0;
 let waveSlider;
 let resetBtn;
 let sliderValue;
+let stateIndicator;
 
 // Centering offset to center the drawing on screen
 let offsetX = 0;
@@ -25,12 +26,16 @@ let offsetY = 0;
 function setup() {
     // Create a full-screen canvas
     createCanvas(windowWidth, windowHeight);
-    background(20); // Dark background
+    background(10, 10, 10); // Dark background
+
+    // Enable smooth drawing
+    smooth();
 
     // Get references to UI elements
     waveSlider = select('#waveSlider');
     resetBtn = select('#resetBtn');
     sliderValue = select('#sliderValue');
+    stateIndicator = select('#stateIndicator');
 
     // Set up slider event
     waveSlider.input(() => {
@@ -42,17 +47,39 @@ function setup() {
 }
 
 function draw() {
-    // Dark background
-    background(20);
+    // Dark background with subtle gradient
+    background(10, 10, 10);
+
+    // Add subtle vignette effect
+    drawingContext.save();
+    let gradient = drawingContext.createRadialGradient(
+        width / 2, height / 2, 0,
+        width / 2, height / 2, width / 2
+    );
+    gradient.addColorStop(0, 'rgba(26, 10, 26, 0)');
+    gradient.addColorStop(1, 'rgba(10, 10, 10, 0.3)');
+    drawingContext.fillStyle = gradient;
+    drawingContext.fillRect(0, 0, width, height);
+    drawingContext.restore();
 
     // STATE 0: User Drawing Mode
     if (state === 0) {
-        // Draw the current drawing
+        // Draw the current drawing with glow
         if (drawing.length > 0) {
-            stroke(255);
-            strokeWeight(2);
+            // Glow layer
+            stroke(0, 255, 255, 30);
+            strokeWeight(8);
             noFill();
+            beginShape();
+            for (let i = 0; i < drawing.length; i++) {
+                vertex(drawing[i].x, drawing[i].y);
+            }
+            endShape();
 
+            // Main line
+            stroke(0, 255, 255);
+            strokeWeight(3);
+            noFill();
             beginShape();
             for (let i = 0; i < drawing.length; i++) {
                 vertex(drawing[i].x, drawing[i].y);
@@ -63,9 +90,9 @@ function draw() {
 
     // STATE 1: Fourier Animation Mode
     if (state === 1 && fourierX.length > 0) {
-        // Draw the original drawing (faded as reference)
+        // Draw the original drawing (very faded as reference)
         if (drawing.length > 0) {
-            stroke(100);
+            stroke(80, 80, 100, 100);
             strokeWeight(1);
             noFill();
 
@@ -85,9 +112,19 @@ function draw() {
         // Add the final position to the path
         path.unshift(v);
 
-        // Draw the reconstructed path with glow effect
-        // Glow layer
-        stroke(0, 255, 255, 50);
+        // Draw the reconstructed path with enhanced glow effect
+        // Outer glow
+        stroke(0, 255, 255, 20);
+        strokeWeight(16);
+        noFill();
+        beginShape();
+        for (let i = 0; i < path.length; i++) {
+            vertex(path[i].x, path[i].y);
+        }
+        endShape();
+
+        // Middle glow
+        stroke(0, 255, 255, 60);
         strokeWeight(8);
         noFill();
         beginShape();
@@ -96,15 +133,13 @@ function draw() {
         }
         endShape();
 
-        // Main path layer (bright cyan)
-        stroke(0, 255, 255);
-        strokeWeight(3);
-        noFill();
-        beginShape();
-        for (let i = 0; i < path.length; i++) {
-            vertex(path[i].x, path[i].y);
+        // Main path layer (bright cyan with gradient effect)
+        for (let i = 1; i < path.length; i++) {
+            let alpha = map(i, 0, path.length, 255, 100);
+            stroke(0, 255, 255, alpha);
+            strokeWeight(4);
+            line(path[i - 1].x, path[i - 1].y, path[i].x, path[i].y);
         }
-        endShape();
 
         // Increment time
         const dt = (2 * PI) / fourierX.length;
@@ -120,10 +155,24 @@ function draw() {
 function mouseDragged() {
     // Only record points in drawing mode
     if (state === 0) {
-        drawing.push({
-            x: mouseX,
-            y: mouseY
-        });
+        // Add interpolation for smoother lines
+        if (drawing.length > 0) {
+            let lastPoint = drawing[drawing.length - 1];
+            let d = dist(mouseX, mouseY, lastPoint.x, lastPoint.y);
+
+            // Only add point if mouse moved enough (prevents duplicate points)
+            if (d > 5) {
+                drawing.push({
+                    x: mouseX,
+                    y: mouseY
+                });
+            }
+        } else {
+            drawing.push({
+                x: mouseX,
+                y: mouseY
+            });
+        }
     }
 
     return false; // Prevent default behavior
@@ -168,6 +217,7 @@ function mouseReleased() {
 
         // Switch to animation state
         state = 1;
+        stateIndicator.html('Animating');
     }
 }
 
@@ -254,21 +304,38 @@ function drawEpicycles(x, y, rotation, fourier) {
         currentX += radius * cos(angle);
         currentY += radius * sin(angle);
 
-        // Draw the circle (semi-transparent white)
-        stroke(255, 255, 255, 80);
-        strokeWeight(1);
+        // Color based on epicycle size (larger = more cyan, smaller = more purple)
+        let epicycleHue = map(radius, 0, fourier[0].amp, 300, 180);
+
+        // Draw the circle with gradient effect
+        let alpha = map(i, 0, fourier.length, 120, 40);
+        stroke(0, 200, 255, alpha);
+        strokeWeight(1.5);
         noFill();
         ellipse(prevX, prevY, radius * 2);
 
-        // Draw the rotating arm (radius line)
-        stroke(255, 255, 255, 150);
+        // Draw the rotating arm with gradient
         strokeWeight(2);
+        stroke(0, 255, 255, map(i, 0, fourier.length, 200, 80));
         line(prevX, prevY, currentX, currentY);
 
-        // Draw a dot at the tip of this arm
-        fill(255);
+        // Draw a pulsing dot at the center of larger epicycles
+        if (i < 5) {
+            let pulseSize = 4 + sin(frameCount * 0.1) * 1;
+            fill(0, 255, 255, 200);
+            noStroke();
+            ellipse(prevX, prevY, pulseSize);
+        }
+
+        // Draw a glowing dot at the tip of this arm
+        // Outer glow
+        fill(0, 255, 255, 100);
         noStroke();
-        ellipse(currentX, currentY, 6);
+        ellipse(currentX, currentY, 10);
+
+        // Inner bright dot
+        fill(0, 255, 255);
+        ellipse(currentX, currentY, 5);
     }
 
     // Return the final position (tip of all epicycles)
@@ -293,7 +360,10 @@ function resetDrawing() {
     waveSlider.value(1);
     sliderValue.html(1);
 
-    background(20);
+    // Update state indicator
+    stateIndicator.html('Drawing Mode');
+
+    background(10, 10, 10);
 }
 
 // Handle window resizing
