@@ -9,24 +9,24 @@ A creative coding project that decomposes hand-drawn paths into rotating circles
 
 ---
 
-## ✨ Features
+## Features
 
-- 🎨 **Interactive Drawing Canvas** - Draw any shape with your mouse
-- 🖼️ **Trace an Image** - Upload or drag-and-drop an image; its silhouette is traced and drawn by the epicycles
-- ⚡ **Fast Fourier Transform** - O(N log N) FFT instead of the naive O(N²) DFT
-- 📐 **Arc-Length Resampling** - Uniform sampling for a faithful, distortion-free reconstruction
-- 🌀 **Epicycle Animation** - Watch rotating circles recreate your drawing
-- 🎚️ **Epicycle Slider** - Adjust the number of circles (1 to N) to see the approximation sharpen
-- ⏯️ **Play / Pause & Speed** - Full control over the animation
-- 🔘 **Toggles** - Show/hide the circles and the reference path
-- 💾 **Export PNG** - Save a snapshot of your animation
-- ⌨️ **Keyboard Shortcuts** - `Space` play/pause · `R` reset · `S` save
-- 🖥️ **HiDPI Rendering** - Crisp on Retina / high-density displays
-- 🌙 **Glassmorphism UI** - Dark theme with glowing cyan accents, fully responsive
+- **Interactive Drawing Canvas** - Draw any shape with your mouse
+- **Trace an Image** - Upload or drag-and-drop an image; its silhouette is traced and drawn by the epicycles
+- **Fast Fourier Transform** - O(N log N) FFT instead of the naive O(N²) DFT
+- **Arc-Length Resampling** - Uniform sampling for a faithful, distortion-free reconstruction
+- **Epicycle Animation** - Watch rotating circles recreate your drawing
+- **Epicycle Slider** - Adjust the number of circles (1 to N) to see the approximation sharpen
+- **Play / Pause & Speed** - Full control over the animation
+- **Toggles** - Show/hide the circles and the reference path
+- **Export PNG** - Save a snapshot of your animation
+- **Keyboard Shortcuts** - `Space` play/pause · `R` reset · `S` save
+- **HiDPI Rendering** - Crisp on Retina / high-density displays
+- **Glassmorphism UI** - Dark theme with glowing cyan accents, fully responsive
 
 ---
 
-## 🎓 The Mathematics Behind It
+## The Mathematics Behind It
 
 ### What are Epicycles?
 
@@ -162,7 +162,7 @@ Then open your browser to `http://localhost:8000`
 
 ### Or: Trace an Image
 
-- Click **🖼️ Trace an Image** (or just drag-and-drop an image onto the page)
+- Click **Trace an Image** (or just drag-and-drop an image onto the page)
 - The image's main silhouette is extracted and drawn by the epicycles
 - Use the **Threshold** slider and **Invert** toggle to fine-tune what counts as
   the subject (high-contrast images and logos work best)
@@ -179,12 +179,12 @@ Then open your browser to `http://localhost:8000`
 
 **Simple shapes work best for beginners:**
 
-- ⭐ Stars (5-pointed)
-- ❤️ Hearts
-- 🌀 Spirals
-- 🔺 Triangles
-- 🔤 Letters (try your initials!)
-- 😊 Simple faces
+- Stars (5-pointed)
+- Hearts
+- Spirals
+- Triangles
+- Letters (try your initials!)
+- Simple faces
 
 **Advanced:**
 
@@ -195,7 +195,7 @@ Then open your browser to `http://localhost:8000`
 
 ---
 
-## 🛠️ Technical Details
+## Technical Details
 
 ### Project Structure
 
@@ -377,7 +377,7 @@ This implementation uses the **standard DFT formula**. For perfect mathematical 
 
 ---
 
-## 📖 Further Reading
+## Further Reading
 
 ### Books
 
@@ -397,25 +397,25 @@ This implementation uses the **standard DFT formula**. For perfect mathematical 
 
 ---
 
-## 📜 License
+## License
 
 This project is open source and available for educational purposes.
 
 ---
 
-## 💡 About This Project
+## About This Project
 
 This project was created to make the beautiful mathematics of Fourier analysis accessible and interactive. By transforming abstract mathematical concepts into visual, hands-on experiences, we can develop deeper intuition for how the Fourier Transform works.
 
 The epicycle representation is not just mathematically equivalent - it's **visually intuitive**. Each frequency becomes a physical rotating circle, and their sum naturally recreates your drawing. This direct correspondence between math and motion makes Fourier analysis tangible.
 
-**Enjoy exploring the mathematics of motion!** 🌀
+**Enjoy exploring the mathematics of motion!**
 
 ---
 
 <div align="center">
 
-**Made with ❤️ and Mathematics**
+**Made with Love and Mathematics**
 
 [Report Bug](../../issues) · [Request Feature](../../issues)
 
