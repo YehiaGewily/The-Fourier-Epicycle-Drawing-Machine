@@ -12,13 +12,17 @@ A creative coding project that decomposes hand-drawn paths into rotating circles
 ## ✨ Features
 
 - 🎨 **Interactive Drawing Canvas** - Draw any shape with your mouse
-- 🔄 **Real-time DFT Computation** - Instant Fourier transform calculation
+- 🖼️ **Trace an Image** - Upload or drag-and-drop an image; its silhouette is traced and drawn by the epicycles
+- ⚡ **Fast Fourier Transform** - O(N log N) FFT instead of the naive O(N²) DFT
+- 📐 **Arc-Length Resampling** - Uniform sampling for a faithful, distortion-free reconstruction
 - 🌀 **Epicycle Animation** - Watch rotating circles recreate your drawing
-- 🎚️ **Dynamic Slider Control** - Adjust the number of epicycles (1 to N)
-- 🎯 **Auto-Centering** - Drawings automatically center on screen
-- 🌙 **Dark Theme** - Professional UI with glowing cyan effects
-- 💫 **Smooth Animations** - Silky 60fps epicycle rotations
-- 🔄 **Reset Button** - Easy way to start fresh
+- 🎚️ **Epicycle Slider** - Adjust the number of circles (1 to N) to see the approximation sharpen
+- ⏯️ **Play / Pause & Speed** - Full control over the animation
+- 🔘 **Toggles** - Show/hide the circles and the reference path
+- 💾 **Export PNG** - Save a snapshot of your animation
+- ⌨️ **Keyboard Shortcuts** - `Space` play/pause · `R` reset · `S` save
+- 🖥️ **HiDPI Rendering** - Crisp on Retina / high-density displays
+- 🌙 **Glassmorphism UI** - Dark theme with glowing cyan accents, fully responsive
 
 ---
 
@@ -156,6 +160,13 @@ Then open your browser to `http://localhost:8000`
 - Epicycles appear and begin rotating
 - A glowing cyan path traces your drawing
 
+### Or: Trace an Image
+
+- Click **🖼️ Trace an Image** (or just drag-and-drop an image onto the page)
+- The image's main silhouette is extracted and drawn by the epicycles
+- Use the **Threshold** slider and **Invert** toggle to fine-tune what counts as
+  the subject (high-contrast images and logos work best)
+
 ### Step 3: Experiment
 
 - **Slider:** Adjust the number of epicycles
@@ -190,10 +201,19 @@ Then open your browser to `http://localhost:8000`
 
 ```
 The Fourier Epicycle Drawing Machine/
-├── index.html          # HTML structure + CSS styling + UI controls
-├── sketch.js           # p5.js sketch with DFT implementation
+├── index.html          # Markup + UI controls only
+├── styles.css          # All styling (glassmorphism, sliders, toggles, responsive)
+├── js/
+│   ├── fourier.js      # Pure math: arc-length resampling + radix-2 FFT (no p5/DOM)
+│   ├── imagetrace.js   # Image → silhouette contour (threshold + blob + boundary trace)
+│   ├── epicycles.js    # Epicycle rendering (depends on p5)
+│   ├── ui.js           # DOM wiring; exposes control values via getters
+│   └── sketch.js       # p5 instance-mode entry point gluing input → math → render
 └── README.md           # This file
 ```
+
+The code is split so the **math is fully decoupled from rendering**: `fourier.js`
+has no p5 or DOM dependency and can be unit-tested or run under Node directly.
 
 ### Technology Stack
 
@@ -204,68 +224,71 @@ The Fourier Epicycle Drawing Machine/
 
 ### Key Algorithms
 
-#### 1. DFT Implementation
+The pipeline (in `js/fourier.js`) has three stages that together make the
+reconstruction faithful:
+
+#### 1. Arc-Length Resampling
+
+Raw mouse points are spaced unevenly (fast strokes = sparse points). But the
+DFT assumes **uniformly spaced** samples — feeding it uneven points distorts the
+result. So the path is first resampled to N points spaced equally *by arc
+length*, where N is a power of two (so the FFT can be used).
+
+#### 2. Radix-2 FFT
+
+An iterative Cooley–Tukey **FFT** replaces the naive double loop, taking the
+transform from O(N²) to **O(N log N)**. The centroid is subtracted first so the
+DC term is zero and the shape is centered on the origin (the screen offset is
+added back only at render time, keeping the reference path and reconstruction
+perfectly aligned).
+
+#### 3. Centered Frequencies
+
+After the FFT, bins above `N/2` are reinterpreted as **negative** frequencies
+(`k → k − N`). This is the crucial bit for visual quality: it yields the smooth
+*minimal-frequency* interpolation between samples, instead of a high-frequency
+alias that hits every sample point but wiggles violently in between.
 
 ```javascript
-function dft(points) {
-    const N = points.length;
-    const frequencies = [];
-    
-    for (let k = 0; k < N; k++) {
-        let re = 0, im = 0;
-        
-        for (let n = 0; n < N; n++) {
-            const angle = (-2 * PI * k * n) / N;
-            re += points[n].x * cos(angle) - points[n].y * sin(angle);
-            im += points[n].x * sin(angle) + points[n].y * cos(angle);
-        }
-        
-        re /= N;
-        im /= N;
-        
-        frequencies.push({
-            re: re,
-            im: im,
-            freq: k,
-            amp: sqrt(re * re + im * im),
-            phase: atan2(im, re)
-        });
-    }
-    
-    return frequencies;
+const freq = k <= N / 2 ? k : k - N;   // centered frequency
+```
+
+#### Image → Contour (`js/imagetrace.js`)
+
+To draw an uploaded image we first need a single ordered path. The module:
+
+1. **Downscales** the image to a working resolution (longest side ≤ 320 px).
+2. **Grayscales** it (transparent pixels treated as background).
+3. **Thresholds** to a binary silhouette — automatically via **Otsu's method**,
+   or manually with the slider.
+4. Keeps the **largest connected blob** (flood-fill) to drop specks and noise.
+5. Runs **Moore-neighbor boundary tracing** to produce one ordered, closed loop.
+
+That loop is then fed into the exact same Fourier pipeline as a hand drawing.
+(Best for high-contrast images, logos and silhouettes; photographs trace as
+their outer outline. Multi-contour / edge-detail tracing is a natural next step.)
+
+#### Epicycle Rendering
+
+```javascript
+// js/epicycles.js — sum the rotating circles, return the tip
+let x = ox, y = oy;
+for (let i = 0; i < count; i++) {
+    const e = eps[i];
+    const angle = e.freq * time + e.phase;
+    x += e.amp * Math.cos(angle);
+    y += e.amp * Math.sin(angle);
 }
 ```
 
-#### 2. Epicycle Rendering
+### Performance & Accuracy
 
-```javascript
-function drawEpicycles(x, y, time, fourier) {
-    for (let i = 0; i < fourier.length; i++) {
-        const angle = fourier[i].freq * time + fourier[i].phase;
-        const radius = fourier[i].amp;
-        
-        // Draw circle
-        circle(x, y, radius * 2);
-        
-        // Calculate next position
-        x += radius * cos(angle);
-        y += radius * sin(angle);
-    }
-    
-    return createVector(x, y);
-}
-```
-
-### Performance
-
-- **Time Complexity:** O(N²) for DFT computation
-- **Space Complexity:** O(N) for storing points and frequencies
-- **Typical Performance:**
-  - 100 points: Instant
-  - 500 points: ~50ms
-  - 1000 points: ~200ms
-
-For very large drawings, consider implementing FFT (Fast Fourier Transform) for O(N log N) performance.
+- **Time Complexity:** O(N log N) via FFT
+- **Space Complexity:** O(N)
+- **Resolution:** drawings are resampled to 128–1024 points (next power of two),
+  so even quick strokes get plenty of frequency components.
+- **Verified accuracy:** the epicycles reconstruct the resampled samples to
+  machine precision (max error ≈ 1e-13).
 
 ---
 
@@ -332,7 +355,10 @@ For very large drawings, consider implementing FFT (Fast Fourier Transform) for 
 
 **Possible Enhancements:**
 
-- [ ] Implement FFT for faster computation
+- [x] Implement FFT for faster computation
+- [x] Export a PNG snapshot
+- [x] Trace an uploaded image (silhouette contour)
+- [ ] Multi-contour / edge-detail tracing for photographs
 - [ ] Add color controls for paths and epicycles
 - [ ] Export animations as GIF or video
 - [ ] Load SVG drawings for complex shapes
